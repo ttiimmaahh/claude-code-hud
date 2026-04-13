@@ -1,0 +1,22 @@
+{
+  "name": "claude-code-hud",
+  "version": "0.1.0",
+  "description": "A customizable Claude Code statusline HUD",
+  "bin": {
+    "claude-code-hud": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "node --test test/**/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^20.0.0"
+  }
+}
