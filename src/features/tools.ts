@@ -3,7 +3,7 @@ import type { Theme } from "../themes/index.js";
 import type { TranscriptEntry } from "../types.js";
 
 // Slow / blocking tools — the ones where "what's running?" is interesting.
-const SLOW_TOOLS = new Set(["Bash", "WebFetch", "WebSearch", "Task"]);
+const SLOW_TOOLS = new Set(["Bash", "WebFetch", "WebSearch", "Agent", "Task"]);
 
 interface ActiveTool {
   name: string;
@@ -36,7 +36,7 @@ function summarize(name: string, input: unknown): string {
     try { return new URL(String(i.url)).hostname; } catch { return "fetch"; }
   }
   if (name === "WebSearch") return truncate(String(i.query ?? ""), 30);
-  if (name === "Task") {
+  if (name === "Agent" || name === "Task") {
     const agent = String(i.subagent_type ?? "agent");
     const desc = String(i.description ?? "");
     return desc ? `${agent}: ${truncate(desc, 30)}` : agent;
@@ -53,7 +53,7 @@ export function renderTools(entries: TranscriptEntry[], theme: Theme): string | 
   if (active.length === 0) return null;
   // Show up to 2 to keep the statusline compact; append " +N" overflow marker.
   const shown = active.slice(0, 2).map(t => {
-    const icon = t.name === "Task" ? "🤖" : "⚙";
+    const icon = t.name === "Agent" || t.name === "Task" ? "🤖" : "⚙";
     return `${icon} ${fg(theme.accent, t.name)} ${dim(t.label)}`;
   });
   const extra = active.length - shown.length;
