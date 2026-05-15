@@ -30,6 +30,7 @@ async function main() {
     cacheReadTokens: usage?.cache_read_input_tokens ?? 0,
     cacheCreationTokens: usage?.cache_creation_input_tokens ?? 0,
     outputTokens: usage?.output_tokens ?? 0,
+    modelId: input.model.id,
     exceeds200k: input.exceeds_200k_tokens ?? false,
   };
 
