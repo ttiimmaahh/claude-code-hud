@@ -3,7 +3,9 @@
 # machine-specific home paths, personal emails, and credential-shaped strings.
 #
 # Runs in CI on every push to main, and locally via `npm run check:leaks`.
-# Scans git-tracked files only — ignored files never reach the remote.
+# Scans tracked AND untracked-but-not-ignored files (`git grep --untracked`):
+# scanning only tracked files meant a local pre-commit run passed on exactly the
+# new files you were about to add, and CI caught them a push later.
 # Kept POSIX-ish (no mapfile/associative arrays) so it works on macOS bash 3.2.
 set -uo pipefail
 
@@ -17,7 +19,7 @@ FAIL=0
 # scan <label> <pattern> [allowlist-regex]
 scan() {
   label="$1"; pattern="$2"; allow="${3:-}"
-  hits=$(git grep -nIE -e "$pattern" -- . "$SELF" 2>/dev/null || true)
+  hits=$(git grep --untracked -nIE -e "$pattern" -- . "$SELF" 2>/dev/null || true)
   if [ -n "$allow" ] && [ -n "$hits" ]; then
     hits=$(printf '%s\n' "$hits" | grep -vE "$allow" || true)
   fi
@@ -31,14 +33,14 @@ scan() {
   fi
 }
 
-echo "Scanning $(git ls-files | wc -l | tr -d ' ') tracked files"
+echo "Scanning $(git ls-files --cached --others --exclude-standard | wc -l | tr -d ' ') files (tracked + untracked)"
 echo
 
 # Absolute home directories in committed files leak the author's username and
 # make the repo unusable on another machine.
 scan "Absolute home path" \
      '/(Users|home)/[A-Za-z0-9._-]+' \
-     '/home/runner|/absolute/path'
+     '/home/runner|/absolute/path|Users/example|Users/First Last|Users/<'
 
 scan "Email address" \
      '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' \

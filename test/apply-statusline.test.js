@@ -115,8 +115,8 @@ test("Windows backslash paths are normalised to forward slashes", () => {
   const dir = sandbox();
   try {
     const path = join(dir, "settings.json");
-    apply(path, "C:\\Users\\tim\\claude-code-hud\\dist\\index.js");
-    assert.equal(read(path).statusLine.command, "node C:/Users/tim/claude-code-hud/dist/index.js");
+    apply(path, "C:\\Users\\example\\claude-code-hud\\dist\\index.js");
+    assert.equal(read(path).statusLine.command, "node C:/Users/example/claude-code-hud/dist/index.js");
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
