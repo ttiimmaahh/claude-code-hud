@@ -1,0 +1,13 @@
+# Normalise to LF in the repo. Without this, core.autocrlf on a Windows clone
+# rewrites install.sh with CRLF, and it then fails under Git Bash/WSL with
+# "\r: command not found".
+* text=auto eol=lf
+
+# PowerShell is happiest with CRLF on disk on Windows.
+*.ps1 text eol=crlf
+
+# Shell scripts must stay LF everywhere, including on Windows checkouts.
+*.sh    text eol=lf
+*.js    text eol=lf
+*.ts    text eol=lf
+*.json  text eol=lf

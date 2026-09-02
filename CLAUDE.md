@@ -97,7 +97,26 @@ Cache is 5s per cwd. These files rarely change mid-session, and even if they do,
 - **`exceeds_200k_tokens`** in the payload signals Claude's 1M-context beta is active — the context bar uses it to pick the right denominator. Don't hardcode 200000.
 - **`cost.total_cost_usd` is authoritative.** Don't sum tokens × pricing yourself; Claude Code already did the math, handles cache-read/cache-create rate differences, and stays correct across model price changes.
 - **Module-level `Map` caches survive within a single invocation only** (the Node process exits per tick). They're there to protect against Bun/long-running scenarios, not as a real cache — don't rely on cross-tick state.
+- **No POSIX-only shell-outs.** The HUD runs on Windows too. `sh`, `2>/dev/null`, and single-quoted `node -e '…'` do not exist there. Shell out via `execFile`/`spawn` with an explicit binary, or run a compiled sibling module with `process.execPath` (see `mcp-refresh.ts`). Always attach a `child.on("error", …)` to a spawn — an unhandled `error` event takes down the whole tick.
+- **Don't parse CLI output by its status icon.** `claude mcp list` prints `✔` (U+2714), not `✓` (U+2713); an earlier regex used the latter and silently counted almost nothing. Match on line structure and let the icon vary.
 - **Feature ordering is user-controlled via `config.features`.** If you add a feature that only makes sense in a specific position, that's a smell — redesign so it composes anywhere.
+
+## Installers
+
+`install.sh` (POSIX) and `install.ps1` (Windows) are thin wrappers. All the logic
+that can corrupt something lives in `scripts/apply-statusline.js`, which both call:
+
+- It is the single implementation of the settings merge, so the two installers
+  cannot drift apart.
+- Doing the JSON edit in node avoids PowerShell's `ConvertTo-Json`, whose default
+  `-Depth 2` would silently flatten nested `hooks`/`permissions`/`enabledPlugins`
+  into `System.Object[]`.
+- It normalises `\` to `/` and quotes paths containing spaces — `C:\Users\First Last\…`
+  is common on Windows and would otherwise reach the shell as two arguments.
+- It refuses to write when the existing file is not valid JSON, or is not an
+  object at the top level, and backs up before every write.
+
+Keep new install logic in that script rather than in either shell wrapper.
 
 ## Testing
 

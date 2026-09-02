@@ -24,7 +24,9 @@ All seven features are on by default. Each feature returns nothing when it has n
 
 ## Install
 
-On any machine — clone, then run the installer:
+Clone, then run the installer for your platform.
+
+**macOS / Linux**
 
 ```bash
 git clone https://github.com/ttiimmaahh/claude-code-hud.git
@@ -32,10 +34,29 @@ cd claude-code-hud
 ./install.sh
 ```
 
-`install.sh` installs dependencies, builds `dist/`, smoke-tests the statusline, and
-writes the correct absolute path into `~/.claude/settings.json` — backing the file
-up first and leaving your other settings untouched. Re-run it any time you move the
-repo or pull changes; it is idempotent.
+**Windows (PowerShell)**
+
+```powershell
+git clone https://github.com/ttiimmaahh/claude-code-hud.git
+cd claude-code-hud
+.\install.ps1
+```
+
+If script execution is blocked (the usual default), run it as:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+> **Note:** `install.ps1` is reviewed but has not yet been executed on a Windows
+> machine. The settings-merge logic it delegates to (`scripts/apply-statusline.js`)
+> is covered by tests, including Windows-style paths and usernames containing
+> spaces. Please open an issue if the PowerShell wrapper misbehaves.
+
+Both installers install dependencies, build `dist/`, smoke-test the statusline, and
+write the correct absolute path into your Claude Code `settings.json` — backing the
+file up first and leaving your other settings untouched. Re-run either any time you
+move the repo or pull changes; they are idempotent.
 
 Restart Claude Code and the HUD appears at the bottom of the terminal.
 
@@ -46,7 +67,9 @@ Restart Claude Code and the HUD appears at the bottom of the terminal.
 npm install && npm run build
 ```
 
-Then add to `~/.claude/settings.json`, using the absolute path to your clone:
+Then add to your settings file — `~/.claude/settings.json` on macOS/Linux,
+`%USERPROFILE%\.claude\settings.json` on Windows — using the absolute path to
+your clone:
 
 ```json
 {
@@ -56,6 +79,10 @@ Then add to `~/.claude/settings.json`, using the absolute path to your clone:
   }
 }
 ```
+
+On Windows use forward slashes (`C:/Users/<your-name>/claude-code-hud/dist/index.js`) so
+you do not have to escape backslashes, and wrap the path in `\"` quotes if it
+contains a space.
 
 </details>
 
@@ -67,6 +94,8 @@ Then add to `~/.claude/settings.json`, using the absolute path to your clone:
 - Node.js 18+ (uses ES2022, native `node:test` for test runner)
 - A terminal that supports ANSI truecolor (most modern terminals do)
 - `git` on PATH (optional — the `git` feature no-ops without it)
+- Windows, macOS or Linux. On Windows use Windows Terminal; the legacy
+  `conhost` console does not render truecolor ANSI.
 
 ## Configuration
 

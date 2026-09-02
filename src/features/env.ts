@@ -14,6 +14,8 @@ export interface EnvCounts {
 
 const HOME = homedir();
 const MCP_CACHE_PATH = join(tmpdir(), "claude-code-hud-mcp-cache.json");
+// The refresher is a compiled sibling module, run as its own process.
+const MCP_REFRESH_SCRIPT_PATH = join(__dirname, "..", "mcp-refresh.js");
 const MCP_CACHE_TTL_MS = 60_000;        // how long a remote count stays fresh
 const MCP_REFRESH_TIMEOUT_MS = 8000;    // kill the background refresh if it hangs
 
@@ -82,20 +84,18 @@ function kickRemoteMcpRefresh(): void {
   if (lock && Date.now() - lock.stamp < MCP_REFRESH_TIMEOUT_MS) return;
   try { writeFileSync(lockPath, JSON.stringify({ stamp: Date.now() })); } catch { return; }
 
-  // Spawn detached. We only count claude.ai-prefixed servers — user/plugin
-  // MCPs are already counted from disk, so including them here would double.
-  const script = `
-    claude mcp list 2>/dev/null | node -e '
-      let s = "";
-      process.stdin.on("data", c => s += c);
-      process.stdin.on("end", () => {
-        const count = s.split("\\n").filter(l => /^claude\\.ai .+: .+ - (✓|!)/.test(l)).length;
-        require("fs").writeFileSync(${JSON.stringify(MCP_CACHE_PATH)}, JSON.stringify({count, stamp: Date.now()}));
-        try { require("fs").unlinkSync(${JSON.stringify(lockPath)}); } catch {}
-      });
-    '
-  `;
-  const child = spawn("sh", ["-c", script], { detached: true, stdio: "ignore" });
+  // Run the refresher as a detached `node <script>` rather than `sh -c`: `sh`
+  // does not exist on Windows, and the previous inline script relied on POSIX
+  // quoting plus `2>/dev/null`, neither of which cmd understands.
+  // process.execPath is the very node running this tick, so it always exists.
+  const child = spawn(process.execPath, [MCP_REFRESH_SCRIPT_PATH, MCP_CACHE_PATH, lockPath], {
+    detached: true,
+    stdio: "ignore",
+    windowsHide: true,
+  });
+  // Without this, a spawn failure raises an unhandled 'error' event, which
+  // would take down the statusline process instead of just skipping a refresh.
+  child.on("error", () => {});
   child.unref();
 }
 
