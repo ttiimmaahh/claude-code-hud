@@ -26,6 +26,3 @@ Thumbs.db
 # Claude Code per-machine state — project-level .claude/settings.json is fine
 # to commit (shared team settings), but settings.local.json is user-local.
 .claude/settings.local.json
-
-# Local user config overrides for this HUD
-.claude-hud.json

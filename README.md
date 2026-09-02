@@ -24,12 +24,29 @@ All seven features are on by default. Each feature returns nothing when it has n
 
 ## Install
 
+On any machine — clone, then run the installer:
+
 ```bash
-npm install
-npm run build
+git clone https://github.com/ttiimmaahh/claude-code-hud.git
+cd claude-code-hud
+./install.sh
 ```
 
-Then point Claude Code at `dist/index.js` in `~/.claude/settings.json`:
+`install.sh` installs dependencies, builds `dist/`, smoke-tests the statusline, and
+writes the correct absolute path into `~/.claude/settings.json` — backing the file
+up first and leaving your other settings untouched. Re-run it any time you move the
+repo or pull changes; it is idempotent.
+
+Restart Claude Code and the HUD appears at the bottom of the terminal.
+
+<details>
+<summary>Manual setup, if you would rather not run the script</summary>
+
+```bash
+npm install && npm run build
+```
+
+Then add to `~/.claude/settings.json`, using the absolute path to your clone:
 
 ```json
 {
@@ -40,7 +57,10 @@ Then point Claude Code at `dist/index.js` in `~/.claude/settings.json`:
 }
 ```
 
-Restart Claude Code. The statusline appears at the bottom of the terminal.
+</details>
+
+> `dist/` is gitignored, so a fresh clone must be built before the statusline works.
+> That is what `install.sh` does for you.
 
 ### Requirements
 
