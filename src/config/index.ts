@@ -21,9 +21,9 @@ export const defaults: HudConfig = {
 const FILENAME = ".claude-hud.json";
 const GLOBAL_PATH = join(homedir(), ".config", "claude-hud", "config.json");
 
-// Walk up from cwd looking for a project-level config. Stop at filesystem
-// root or home dir (so we don't accidentally pick up a config from a
-// sibling project that happens to share an ancestor).
+// Walk up from cwd looking for a project-level config. `~/.claude-hud.json` is
+// honoured, but the walk stops before ~'s parent — otherwise a stray dotfile in
+// /Users (or /home) would leak into every project on the machine.
 function findProjectConfig(cwd: string): string | null {
   const { root } = parse(cwd);
   const home = homedir();

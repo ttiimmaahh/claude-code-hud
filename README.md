@@ -120,10 +120,15 @@ No API calls, no daemons, no auth. Everything is derived from the statusline pay
 ## Development
 
 ```bash
-npm run dev    # tsc --watch
-npm run build  # one-shot compile to dist/
-npm test       # node --test
+npm run dev          # tsc --watch
+npm run build        # one-shot compile to dist/
+npm test             # build, then run the unit suite
+npm run check:leaks  # scan tracked files for paths/emails/credentials
 ```
+
+Tests cover the pure helpers — transcript parsing, tool pairing, todo extraction,
+context-window resolution, git status, and config layering. Render functions are
+deliberately untested; ANSI snapshots break on every cosmetic tweak.
 
 **Smoke-test a render without launching Claude Code:**
 

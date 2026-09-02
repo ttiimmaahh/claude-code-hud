@@ -101,7 +101,25 @@ Cache is 5s per cwd. These files rarely change mid-session, and even if they do,
 
 ## Testing
 
-`npm test` runs `node --test test/**/*.test.js` (native test runner, no extra deps). Tests should target pure helpers — `latestUsage`, `activeTools`, `latestTodos`, `readGitStatus` — not the render functions (ANSI snapshots are fragile).
+`npm test` builds first (`pretest`) then runs `node --test 'test/**/*.test.js'` (native runner, no extra deps). **Keep the glob quoted** — `**` is not expanded by default in bash/sh, so an unquoted pattern reaches node as a literal path and it tries to `require` it. Node expands the pattern itself.
+
+Tests target pure helpers, never render functions (ANSI snapshots are fragile):
+
+| File | Covers |
+| ---- | ------ |
+| `test/transcript.test.js` | `readTranscript` (malformed lines, missing file, cache invalidation), `latestUsage` |
+| `test/tools.test.js`      | `activeTools` id-pairing, slow-tool filtering, `summarize` labels |
+| `test/todos.test.js`      | `latestTodos` — last write wins, `[]` vs `null` |
+| `test/context.test.js`    | `usedTokens`, `resolveContextWindow` (family defaults, `[1m]`, payload flag) |
+| `test/git.test.js`        | `readGitStatus` against real throwaway repos |
+| `test/config.test.js`     | `loadConfig` layering, nested merge, walk-up bounds, malformed JSON |
+
+Two things make these deterministic on any machine:
+
+- **`loadConfig` tests sandbox `$HOME`.** `GLOBAL_PATH` is derived from `homedir()` at module load, and `os.homedir()` honours `$HOME` on POSIX — so the test sets `$HOME` to a temp dir and re-`require`s the module (clearing `require.cache`). Without this the suite would read the contributor's real `~/.config/claude-hud/config.json` and pass or fail depending on whose machine it ran on.
+- **`git` tests pin `user.email`/`user.name`/`commit.gpgsign` per throwaway repo**, so they don't inherit global git config or fail where commit signing is enabled.
+
+Tests assert the **documented** contract, not the code's comments: `~/.claude-hud.json` *is* honoured (README: "up to (but not past) `~`"), and the walk stops above `~`.
 
 Smoke-test a render end-to-end by piping a hand-crafted payload to `dist/index.js` — see README's "Smoke-test a render" block. Build a fake transcript JSONL under `/tmp/` to exercise features like todos/tools without running a real Claude session.
 

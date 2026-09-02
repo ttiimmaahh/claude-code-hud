@@ -59,7 +59,7 @@ jobs:
         run: gitleaks dir --no-banner --redact --verbose --exit-code 1 .
 
   build:
-    name: Build
+    name: Build & test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -68,6 +68,8 @@ jobs:
           node-version: '24'
       - run: npm ci
       - run: npm run build
+      - name: Unit tests
+        run: npm test
       # Fails the build if a renderer throws on a minimal payload.
       - name: Smoke-test the statusline
         run: |
